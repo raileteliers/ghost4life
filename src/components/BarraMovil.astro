@@ -1,0 +1,19 @@
+---
+import tienda from '../data/tienda.json';
+import { whatsapp } from '../lib/format';
+
+const mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `${tienda.direccion.calle}, ${tienda.direccion.comuna}, ${tienda.direccion.ciudad}`,
+)}`;
+---
+
+<div class="barra-movil">
+  <a
+    class="boton boton--primario"
+    href={whatsapp('¡Hola Ghost4Life! Tengo una consulta.')}
+    target="_blank" rel="noopener"
+  >WhatsApp</a>
+  <a class="boton boton--secundario" href={mapa} target="_blank" rel="noopener">
+    Cómo llegar
+  </a>
+</div>

@@ -1,0 +1,60 @@
+---
+import { ETIQUETA_JUEGO } from '../lib/format';
+
+interface Props {
+  juego: string;
+  nombre: string;
+  setCode?: string;
+  imagen?: string;
+  alto?: string;
+}
+const { juego, nombre, setCode, imagen, alto = '180px' } = Astro.props;
+---
+
+{imagen ? (
+  <img class="miniatura" src={imagen} alt={nombre} loading="lazy" decoding="async" style={`--alto:${alto}`} />
+) : (
+  /* Marcador visual mientras no haya fotos reales del inventario. Es
+     deliberado: es mejor un espacio con identidad que una imagen rota. */
+  <div class={`miniatura miniatura--marcador j-${juego}`} style={`--alto:${alto}`} aria-hidden="true">
+    <span class="miniatura__juego">{ETIQUETA_JUEGO[juego]}</span>
+    {setCode && <span class="miniatura__set">{setCode}</span>}
+  </div>
+)}
+
+<style>
+  .miniatura {
+    width: 100%;
+    height: var(--alto);
+    object-fit: cover;
+    background: var(--bg-elev-2);
+    display: block;
+  }
+  .miniatura--marcador {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    background:
+      radial-gradient(120% 90% at 50% 0%, var(--tinte, #2a2f42) 0%, var(--bg-elev-2) 70%);
+    border-bottom: 1px solid var(--border);
+  }
+  .miniatura__juego {
+    font-weight: 800;
+    font-size: 1.0625rem;
+    color: var(--text);
+    letter-spacing: -0.01em;
+  }
+  .miniatura__set {
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .j-yugioh   { --tinte: #3b3320; }
+  .j-pokemon  { --tinte: #3b3616; }
+  .j-onepiece { --tinte: #3d2419; }
+  .j-otros    { --tinte: #23293a; }
+</style>

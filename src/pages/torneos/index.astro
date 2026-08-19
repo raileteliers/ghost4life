@@ -1,0 +1,103 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import TorneoCard from '../../components/TorneoCard.astro';
+import { estadoTorneo, whatsapp } from '../../lib/format';
+
+const todos = await getCollection('torneos');
+
+const conEstado = todos.map((t) => ({
+  entrada: t,
+  estado: estadoTorneo(t.data.fecha, t.data.hora, t.data.cupos, t.data.inscritos),
+}));
+
+// Próximos en orden cronológico; los pasados quedan abajo, del más reciente al
+// más antiguo, porque siguen sirviendo como historial y como contenido indexable.
+const proximos = conEstado
+  .filter((t) => t.estado !== 'finalizado')
+  .sort((a, b) => a.entrada.data.fecha.getTime() - b.entrada.data.fecha.getTime());
+
+const pasados = conEstado
+  .filter((t) => t.estado === 'finalizado')
+  .sort((a, b) => b.entrada.data.fecha.getTime() - a.entrada.data.fecha.getTime());
+---
+
+<Base
+  titulo="Torneos y eventos"
+  descripcion="Calendario de torneos de Yu-Gi-Oh!, Pokémon y One Piece en Providencia: fechas, formato, valor de inscripción, cupos disponibles y premios."
+>
+  <section class="contenedor cabecera-pagina">
+    <h1>Torneos y eventos</h1>
+    <p class="apagado intro">
+      Jugamos toda la semana. Revisa el formato y los cupos, e inscríbete por
+      WhatsApp en un mensaje.
+    </p>
+  </section>
+
+  <section class="contenedor">
+    <h2 class="titulo-seccion">
+      Próximos torneos <span class="apagado">({proximos.length})</span>
+    </h2>
+
+    {proximos.length > 0 ? (
+      <div class="grilla grilla--ancha">
+        {proximos.map((t) => <TorneoCard id={t.entrada.id} datos={t.entrada.data} />)}
+      </div>
+    ) : (
+      <p class="apagado">
+        No hay fechas publicadas por ahora.
+        <a href={whatsapp('¡Hola! ¿Cuándo es el próximo torneo?')} target="_blank" rel="noopener">
+          Escríbenos
+        </a> y te contamos el calendario.
+      </p>
+    )}
+
+    {pasados.length > 0 && (
+      <>
+        <h2 class="titulo-seccion titulo-seccion--pasados">Fechas anteriores</h2>
+        <div class="grilla grilla--ancha">
+          {pasados.map((t) => <TorneoCard id={t.entrada.id} datos={t.entrada.data} />)}
+        </div>
+      </>
+    )}
+  </section>
+
+  <section class="contenedor seccion">
+    <div class="aviso tarjeta">
+      <h2>¿Primera vez en un torneo?</h2>
+      <p class="apagado">
+        No necesitas un mazo caro ni experiencia previa. Llega, avísanos en la
+        entrada y te acompañamos en tus primeras rondas. Si no tienes mazo, en el
+        draft se juega con sobres que abrimos en el momento.
+      </p>
+      <a
+        class="boton boton--secundario"
+        href={whatsapp('¡Hola! Nunca he jugado un torneo y me gustaría participar. ¿Qué necesito llevar?')}
+        target="_blank" rel="noopener"
+      >Preguntar por WhatsApp</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .cabecera-pagina { padding-block: 2.5rem 1rem; }
+  .cabecera-pagina h1 { margin-bottom: 0.35rem; }
+  .intro { max-width: 55ch; margin: 0; }
+
+  .titulo-seccion { margin: 1.5rem 0 1.25rem; font-size: 1.25rem; }
+  .titulo-seccion--pasados { margin-top: 3rem; }
+
+  .aviso {
+    padding: 1.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    background:
+      linear-gradient(135deg, rgb(0 229 199 / 0.07), rgb(155 125 255 / 0.07)),
+      var(--bg-elev);
+  }
+  .aviso h2 { font-size: 1.25rem; }
+  .aviso p { max-width: 62ch; }
+  .aviso .boton { margin-top: 0.5rem; }
+</style>

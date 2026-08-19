@@ -1,0 +1,152 @@
+---
+import {
+  clp, fechaLarga, fechaISO, ruta, estadoTorneo, ETIQUETA_JUEGO,
+} from '../lib/format';
+
+interface Props {
+  id: string;
+  datos: {
+    titulo: string;
+    fecha: Date;
+    hora: string;
+    juego: string;
+    formato: string;
+    entradaCLP: number;
+    cupos: number;
+    inscritos: number;
+  };
+}
+const { id, datos } = Astro.props;
+
+const estado = estadoTorneo(datos.fecha, datos.hora, datos.cupos, datos.inscritos);
+const libres = Math.max(0, datos.cupos - datos.inscritos);
+const ocupacion = Math.min(100, Math.round((datos.inscritos / datos.cupos) * 100));
+---
+
+<article class={`torneo tarjeta torneo--${estado}`} data-torneo data-juego={datos.juego} data-estado={estado}>
+  <a class="torneo__enlace" href={ruta(`/torneos/${id}`)}>
+    <div class="torneo__fecha">
+      <time datetime={`${fechaISO(datos.fecha)}T${datos.hora}`}>
+        <span class="torneo__dia">{fechaLarga(datos.fecha)}</span>
+        <span class="torneo__hora">{datos.hora} h</span>
+      </time>
+    </div>
+
+    <div class="torneo__cuerpo">
+      <div class="torneo__meta">
+        <span class="badge badge--juego" style={`--color-juego: var(--juego-${datos.juego})`}>
+          {ETIQUETA_JUEGO[datos.juego]}
+        </span>
+        {estado === 'abierto' && <span class="badge badge--ok">Inscripciones abiertas</span>}
+        {estado === 'lleno' && <span class="badge badge--alerta">Cupos llenos</span>}
+        {estado === 'finalizado' && <span class="badge">Finalizado</span>}
+      </div>
+
+      <h3 class="torneo__titulo">{datos.titulo}</h3>
+      <p class="torneo__formato apagado">{datos.formato}</p>
+
+      <dl class="torneo__datos">
+        <div>
+          <dt>Entrada</dt>
+          <dd>{datos.entradaCLP === 0 ? 'Gratis' : clp(datos.entradaCLP)}</dd>
+        </div>
+        <div>
+          <dt>Cupos</dt>
+          <dd>
+            {estado === 'finalizado'
+              ? `${datos.inscritos} participantes`
+              : libres > 0 ? `${libres} disponibles` : 'Sin cupos'}
+          </dd>
+        </div>
+      </dl>
+
+      {estado !== 'finalizado' && (
+        <div
+          class="torneo__barra"
+          role="img"
+          aria-label={`${datos.inscritos} de ${datos.cupos} cupos ocupados`}
+        >
+          <span style={`width:${ocupacion}%`}></span>
+        </div>
+      )}
+    </div>
+  </a>
+</article>
+
+<style>
+  .torneo { transition: border-color 0.15s ease, transform 0.15s ease; }
+  .torneo:hover { border-color: var(--border-fuerte); transform: translateY(-2px); }
+  .torneo:focus-within { border-color: var(--accent); }
+  .torneo--finalizado { opacity: 0.72; }
+
+  .torneo__enlace {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .torneo__fecha {
+    padding: 0.7rem 1rem;
+    background: var(--bg-elev-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .torneo__fecha time { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+  .torneo__dia {
+    font-weight: 700;
+    font-size: 0.9375rem;
+  }
+  /* Solo la inicial: en español "22 de agosto" no lleva mayúsculas internas,
+     que es justo lo que haría text-transform: capitalize. */
+  .torneo__dia::first-letter { text-transform: uppercase; }
+  .torneo__hora {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.875rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .torneo__cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1rem;
+    flex: 1;
+  }
+  .torneo__meta { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .torneo__titulo { font-size: 1.0625rem; margin: 0; }
+  .torneo__formato { font-size: 0.875rem; margin: 0; }
+
+  .torneo__datos {
+    display: flex;
+    gap: 1.5rem;
+    margin: 0.15rem 0 0;
+  }
+  .torneo__datos div { display: flex; flex-direction: column; gap: 0.1rem; }
+  .torneo__datos dt {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+  .torneo__datos dd {
+    margin: 0;
+    font-weight: 700;
+    font-size: 0.9375rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .torneo__barra {
+    margin-top: auto;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--bg-elev-2);
+    overflow: hidden;
+  }
+  .torneo__barra span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--violet));
+  }
+</style>

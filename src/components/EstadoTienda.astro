@@ -1,0 +1,73 @@
+---
+import tienda from '../data/tienda.json';
+import { TZ } from '../lib/format';
+
+// Se resuelve en el navegador y no en el build: un "abierto ahora" calculado al
+// compilar quedaría congelado en la hora del despliegue. Sin JS simplemente no
+// aparece la insignia, y el horario completo sigue publicado más abajo.
+const horario = tienda.horario;
+---
+
+<span class="estado" id="estado-tienda" hidden>
+  <span class="estado__punto"></span>
+  <span class="estado__texto"></span>
+</span>
+
+<script is:inline define:vars={{ horario, TZ }}>
+  (function () {
+    const el = document.getElementById('estado-tienda');
+    if (!el) return;
+
+    const ahora = new Date();
+    const partes = new Intl.DateTimeFormat('en-US', {
+      timeZone: TZ,
+      weekday: 'long',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).formatToParts(ahora);
+
+    const buscar = (t) => partes.find((p) => p.type === t)?.value ?? '';
+    const dia = buscar('weekday');
+    const minutosAhora = Number(buscar('hour')) * 60 + Number(buscar('minute'));
+
+    const aMinutos = (hhmm) => {
+      const [h, m] = hhmm.split(':').map(Number);
+      return h * 60 + m;
+    };
+
+    const tramo = horario.find((h) => h.dias.includes(dia));
+    const abierto =
+      !!tramo &&
+      minutosAhora >= aMinutos(tramo.abre) &&
+      minutosAhora < aMinutos(tramo.cierra);
+
+    el.querySelector('.estado__texto').textContent = abierto ? 'Abierto ahora' : 'Cerrado ahora';
+    el.dataset.abierto = String(abierto);
+    el.hidden = false;
+  })();
+</script>
+
+<style>
+  .estado {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid var(--border-fuerte);
+    background: var(--bg-elev-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-dim);
+  }
+  .estado__punto {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+    flex-shrink: 0;
+  }
+  .estado[data-abierto='true'] { color: var(--accent); border-color: rgb(0 229 199 / 0.4); }
+  .estado[data-abierto='true'] .estado__punto { background: var(--accent); }
+  .estado[data-abierto='false'] { color: var(--text-dim); }
+</style>

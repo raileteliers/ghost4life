@@ -1,0 +1,99 @@
+---
+import Logo from './Logo.astro';
+import { ruta, whatsapp } from '../lib/format';
+
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+const actual = Astro.url.pathname.replace(base, '').replace(/\/$/, '') || '/';
+
+const enlaces = [
+  { href: '/catalogo', texto: 'Catálogo' },
+  { href: '/torneos', texto: 'Torneos' },
+  { href: '/tienda', texto: 'La tienda' },
+  { href: '/contacto', texto: 'Contacto' },
+];
+---
+
+<header class="cabecera">
+  <div class="contenedor cabecera__interior">
+    <a class="cabecera__marca" href={ruta('/')} aria-label="Ghost4Life — ir al inicio">
+      <Logo alto={30} />
+    </a>
+
+    <nav class="cabecera__nav" aria-label="Navegación principal">
+      <ul>
+        {enlaces.map((e) => {
+          const activo = actual === e.href || actual.startsWith(e.href + '/');
+          return (
+            <li>
+              <a href={ruta(e.href)} aria-current={activo ? 'page' : undefined}>{e.texto}</a>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+
+    <a
+      class="boton boton--primario cabecera__cta"
+      href={whatsapp('¡Hola Ghost4Life! Tengo una consulta.')}
+      target="_blank" rel="noopener"
+    >Escríbenos</a>
+  </div>
+</header>
+
+<style>
+  .cabecera {
+    position: sticky;
+    top: 0;
+    z-index: 90;
+    background: rgb(10 11 16 / 0.88);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .cabecera__interior {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 64px;
+  }
+  .cabecera__marca { flex-shrink: 0; line-height: 0; }
+
+  .cabecera__nav { flex: 1; min-width: 0; }
+  .cabecera__nav ul {
+    display: flex;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    /* Con 4 enlaces no hace falta un menú hamburguesa ni el JS que lo acompaña:
+       en pantallas angostas la barra simplemente se desplaza. */
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .cabecera__nav ul::-webkit-scrollbar { display: none; }
+
+  .cabecera__nav a {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radio-sm);
+    color: var(--text-dim);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    white-space: nowrap;
+  }
+  .cabecera__nav a:hover { color: var(--text); background: var(--bg-elev); }
+  .cabecera__nav a[aria-current='page'] {
+    color: var(--accent);
+    background: rgb(0 229 199 / 0.1);
+  }
+
+  .cabecera__cta { flex-shrink: 0; padding: 0.55rem 1.1rem; font-size: 0.9375rem; }
+
+  @media (max-width: 859px) {
+    /* En móvil la acción vive en la barra inferior fija, no aquí arriba. */
+    .cabecera__cta { display: none; }
+  }
+  @media (min-width: 860px) {
+    .cabecera__nav ul { justify-content: center; gap: 0.5rem; }
+  }
+</style>

@@ -1,0 +1,102 @@
+---
+import Miniatura from './Miniatura.astro';
+import { clp, ruta, ETIQUETA_JUEGO, ETIQUETA_CATEGORIA } from '../lib/format';
+
+interface Props {
+  id: string;
+  datos: {
+    nombre: string;
+    juego: string;
+    categoria: string;
+    precioCLP: number;
+    stock: number;
+    setCode?: string;
+    condicion?: string;
+    imagen?: string;
+  };
+}
+const { id, datos } = Astro.props;
+const agotado = datos.stock === 0;
+const ultimas = datos.stock > 0 && datos.stock <= 3;
+---
+
+<article
+  class="producto tarjeta"
+  data-producto
+  data-juego={datos.juego}
+  data-categoria={datos.categoria}
+  data-precio={datos.precioCLP}
+  data-stock={datos.stock}
+  data-nombre={datos.nombre.toLowerCase()}
+>
+  <a class="producto__enlace" href={ruta(`/catalogo/${id}`)}>
+    <Miniatura juego={datos.juego} nombre={datos.nombre} setCode={datos.setCode} imagen={datos.imagen} />
+
+    <div class="producto__cuerpo">
+      <div class="producto__meta">
+        <span class="badge badge--juego" style={`--color-juego: var(--juego-${datos.juego})`}>
+          {ETIQUETA_JUEGO[datos.juego]}
+        </span>
+        <span class="badge">{ETIQUETA_CATEGORIA[datos.categoria]}</span>
+      </div>
+
+      <h3 class="producto__nombre">{datos.nombre}</h3>
+
+      {datos.condicion && <p class="producto__condicion apagado">Estado: {datos.condicion}</p>}
+
+      <div class="producto__pie">
+        <span class="producto__precio">{clp(datos.precioCLP)}</span>
+        {agotado
+          ? <span class="badge badge--off">Agotado</span>
+          : ultimas
+            ? <span class="badge badge--alerta">Quedan {datos.stock}</span>
+            : <span class="badge badge--ok">En stock</span>}
+      </div>
+    </div>
+  </a>
+</article>
+
+<style>
+  .producto { transition: border-color 0.15s ease, transform 0.15s ease; }
+  .producto:hover { border-color: var(--border-fuerte); transform: translateY(-2px); }
+  .producto:focus-within { border-color: var(--accent); }
+
+  .producto__enlace {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    color: inherit;
+    text-decoration: none;
+  }
+  .producto__cuerpo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding: 0.9rem 1rem 1rem;
+    flex: 1;
+  }
+  .producto__meta { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .producto__nombre {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+    margin: 0;
+    letter-spacing: 0;
+  }
+  .producto__condicion { font-size: 0.8125rem; margin: 0; }
+  .producto__pie {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .producto__precio {
+    font-size: 1.125rem;
+    font-weight: 800;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

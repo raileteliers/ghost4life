@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rleteliers.github.io/okey/sitemap-index.xml

@@ -1,0 +1,38 @@
+{
+  "_nota": "FUENTE ÚNICA DE VERDAD del negocio. Alimenta el JSON-LD, el footer, la página de tienda y los enlaces de WhatsApp. Los campos marcados TODO fueron estimados desde fuentes públicas y deben confirmarse con el dueño antes de publicar.",
+
+  "nombre": "Ghost4Life",
+  "nombreLargo": "Ghost4Life — Tienda TCG",
+  "lema": "Cartas, torneos y comunidad en Providencia",
+  "descripcion": "Tienda de cartas coleccionables en Providencia, Santiago. Singles y sellados de Yu-Gi-Oh!, Pokémon y One Piece, con torneos semanales y retiro en tienda.",
+
+  "direccion": {
+    "calle": "Julio Prado 706",
+    "comuna": "Providencia",
+    "ciudad": "Santiago",
+    "region": "Región Metropolitana",
+    "pais": "CL",
+    "codigoPostal": ""
+  },
+
+  "_todoGeo": "TODO: verificar. No incluimos latitud/longitud a propósito: unas coordenadas equivocadas en el JSON-LD perjudican el SEO local más que ayudarlo. La dirección textual sí es precisa. Cuando el dueño confirme el pin exacto, agregar aquí y en el JSON-LD de Base.astro.",
+
+  "horario": [
+    { "dias": ["Tuesday", "Wednesday", "Thursday", "Friday"], "etiqueta": "Martes a viernes", "abre": "13:00", "cierra": "21:30" },
+    { "dias": ["Saturday", "Sunday"], "etiqueta": "Sábado y domingo", "abre": "13:00", "cierra": "21:30" }
+  ],
+  "diasCerrado": ["Lunes"],
+
+  "_todoContacto": "TODO: verificar. Teléfono y email son placeholders — reemplazar antes de publicar.",
+  "whatsapp": "56900000000",
+  "whatsappLegible": "+56 9 0000 0000",
+  "email": "contacto@ghost4life.cl",
+
+  "redes": [
+    { "nombre": "Instagram", "handle": "@ghost4lifeg4l", "url": "https://www.instagram.com/ghost4lifeg4l/" },
+    { "nombre": "TikTok",    "handle": "@ghost4lifeg4l", "url": "https://www.tiktok.com/@ghost4lifeg4l" },
+    { "nombre": "YouTube",   "handle": "Ghost4Life",     "url": "https://www.youtube.com/channel/UCnFKLCg2ALQ-_dDWbok7szw" },
+    { "nombre": "Twitch",    "handle": "ghost4lifeg4l",  "url": "https://www.twitch.tv/ghost4lifeg4l" },
+    { "nombre": "X",         "handle": "@Ghost4LifeG4L", "url": "https://x.com/ghost4lifeg4l" }
+  ]
+}

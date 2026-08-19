@@ -1,0 +1,174 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Miniatura from '../../components/Miniatura.astro';
+import ProductoCard from '../../components/ProductoCard.astro';
+import tienda from '../../data/tienda.json';
+import {
+  clp, ruta, whatsapp, ETIQUETA_JUEGO, ETIQUETA_CATEGORIA,
+} from '../../lib/format';
+
+export async function getStaticPaths() {
+  const productos = await getCollection('productos');
+  return productos.map((p) => ({ params: { id: p.id }, props: { producto: p, productos } }));
+}
+
+const { producto, productos } = Astro.props;
+const d = producto.data;
+const agotado = d.stock === 0;
+
+// El mensaje va escrito: el cliente solo aprieta enviar. Menos fricción que
+// pedirle que describa lo que quiere, y a la tienda le llega el dato exacto.
+const mensaje = agotado
+  ? `¡Hola Ghost4Life! ¿Van a reponer "${d.nombre}"${d.setCode ? ` (${d.setCode})` : ''}? Me avisan cuando llegue, por favor.`
+  : `¡Hola Ghost4Life! Quiero reservar:\n\n• ${d.nombre}${d.setCode ? ` (${d.setCode})` : ''}\n• Precio: ${clp(d.precioCLP)}\n\n¿Lo tienen disponible para retiro?`;
+
+const relacionados = productos
+  .filter((p) => p.id !== producto.id && p.data.juego === d.juego)
+  .sort((a, b) => Number(b.data.destacado) - Number(a.data.destacado))
+  .slice(0, 4);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: d.nombre,
+  description: d.descripcion,
+  category: ETIQUETA_CATEGORIA[d.categoria],
+  ...(d.setCode ? { sku: d.setCode } : {}),
+  offers: {
+    '@type': 'Offer',
+    price: d.precioCLP,
+    priceCurrency: 'CLP',
+    availability: agotado
+      ? 'https://schema.org/OutOfStock'
+      : 'https://schema.org/InStock',
+    url: new URL(Astro.url.pathname, Astro.site).href,
+    seller: { '@type': 'Store', name: tienda.nombre },
+  },
+};
+---
+
+<Base titulo={d.nombre} descripcion={d.descripcion} schema={schema}>
+  <div class="contenedor">
+    <nav class="miga" aria-label="Ruta de navegación">
+      <a href={ruta('/')}>Inicio</a>
+      <span aria-hidden="true">/</span>
+      <a href={ruta('/catalogo')}>Catálogo</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{d.nombre}</span>
+    </nav>
+
+    <div class="ficha">
+      <div class="ficha__visual tarjeta">
+        <Miniatura
+          juego={d.juego} nombre={d.nombre} setCode={d.setCode}
+          imagen={d.imagen} alto="clamp(260px, 40vw, 400px)"
+        />
+      </div>
+
+      <div class="ficha__info">
+        <div class="ficha__badges">
+          <span class="badge badge--juego" style={`--color-juego: var(--juego-${d.juego})`}>
+            {ETIQUETA_JUEGO[d.juego]}
+          </span>
+          <span class="badge">{ETIQUETA_CATEGORIA[d.categoria]}</span>
+          {d.rareza && <span class="badge">{d.rareza}</span>}
+        </div>
+
+        <h1>{d.nombre}</h1>
+        <p class="ficha__desc">{d.descripcion}</p>
+
+        <dl class="ficha__specs">
+          {d.setCode && (<div><dt>Código</dt><dd>{d.setCode}</dd></div>)}
+          {d.condicion && (<div><dt>Estado</dt><dd>{d.condicion}</dd></div>)}
+          <div>
+            <dt>Disponibilidad</dt>
+            <dd>{agotado ? 'Agotado' : `${d.stock} en stock`}</dd>
+          </div>
+        </dl>
+
+        <div class="ficha__compra tarjeta">
+          <div class="ficha__precio-fila">
+            <span class="ficha__precio">{clp(d.precioCLP)}</span>
+            {agotado
+              ? <span class="badge badge--off">Agotado</span>
+              : <span class="badge badge--ok">Disponible</span>}
+          </div>
+
+          <a class="boton boton--primario boton--bloque" href={whatsapp(mensaje)} target="_blank" rel="noopener">
+            {agotado ? 'Avísenme cuando llegue' : 'Reservar por WhatsApp'}
+          </a>
+
+          <p class="ficha__nota apagado">
+            Reservamos por 48 horas. Pagas y retiras en {tienda.direccion.calle},
+            {' '}{tienda.direccion.comuna}.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {relacionados.length > 0 && (
+      <section class="seccion">
+        <h2>Más de {ETIQUETA_JUEGO[d.juego]}</h2>
+        <div class="grilla">
+          {relacionados.map((p) => <ProductoCard id={p.id} datos={p.data} />)}
+        </div>
+      </section>
+    )}
+  </div>
+</Base>
+
+<style>
+  .miga {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-block: 1.5rem 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-dim);
+  }
+  .miga a { text-decoration: none; }
+  .miga a:hover { text-decoration: underline; }
+
+  .ficha {
+    display: grid;
+    gap: 2rem;
+    padding-block: 1.5rem 1rem;
+  }
+  @media (min-width: 860px) {
+    .ficha { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 3rem; align-items: start; }
+  }
+
+  .ficha__visual { position: sticky; top: 84px; }
+  @media (max-width: 859px) { .ficha__visual { position: static; } }
+
+  .ficha__badges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
+  .ficha__info h1 { font-size: clamp(1.5rem, 3.5vw, 2.25rem); }
+  .ficha__desc { color: var(--text-dim); max-width: 60ch; }
+
+  .ficha__specs {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 1rem 0;
+    border-block: 1px solid var(--border);
+  }
+  .ficha__specs div { display: flex; flex-direction: column; gap: 0.15rem; }
+  .ficha__specs dt {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+  }
+  .ficha__specs dd { margin: 0; font-weight: 700; }
+
+  .ficha__compra { padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+  .ficha__precio-fila { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .ficha__precio {
+    font-size: clamp(1.75rem, 4vw, 2.25rem);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .ficha__nota { font-size: 0.8125rem; margin: 0; }
+</style>

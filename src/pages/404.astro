@@ -1,0 +1,56 @@
+---
+import Base from '../layouts/Base.astro';
+import { ruta, whatsapp } from '../lib/format';
+---
+
+<Base
+  titulo="Página no encontrada"
+  descripcion="La página que buscas no existe o cambió de dirección."
+>
+  <section class="contenedor error">
+    <p class="error__codigo">404</p>
+    <h1>Esta carta no está en el mazo</h1>
+    <p class="apagado">
+      La página que buscas no existe o cambió de dirección. Puede que el producto
+      se haya agotado o que el torneo ya se haya jugado.
+    </p>
+    <div class="error__acciones">
+      <a class="boton boton--primario" href={ruta('/catalogo')}>Ir al catálogo</a>
+      <a class="boton boton--secundario" href={ruta('/torneos')}>Ver torneos</a>
+    </div>
+    <p class="apagado error__ayuda">
+      ¿Buscabas algo puntual?
+      <a href={whatsapp('¡Hola! Buscaba algo en la web y no lo encontré: ')} target="_blank" rel="noopener">
+        Pregúntanos por WhatsApp
+      </a>.
+    </p>
+  </section>
+</Base>
+
+<style>
+  .error {
+    padding-block: clamp(4rem, 12vw, 8rem);
+    max-width: 46rem;
+    text-align: center;
+    margin-inline: auto;
+  }
+  .error__codigo {
+    font-size: clamp(4rem, 14vw, 7rem);
+    font-weight: 800;
+    line-height: 1;
+    margin: 0 0 0.5rem;
+    background: linear-gradient(90deg, var(--accent), var(--violet));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .error p { max-width: 48ch; margin-inline: auto; }
+  .error__acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    justify-content: center;
+    margin: 2rem 0 1.5rem;
+  }
+  .error__ayuda { font-size: 0.9375rem; }
+</style>

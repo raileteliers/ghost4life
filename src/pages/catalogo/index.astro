@@ -1,0 +1,249 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import ProductoCard from '../../components/ProductoCard.astro';
+import { ETIQUETA_JUEGO, ETIQUETA_CATEGORIA } from '../../lib/format';
+import { JUEGOS, CATEGORIAS } from '../../content.config';
+
+const productos = (await getCollection('productos')).sort((a, b) => {
+  // Con stock primero, luego destacados, luego alfabético.
+  if ((a.data.stock === 0) !== (b.data.stock === 0)) return a.data.stock === 0 ? 1 : -1;
+  if (a.data.destacado !== b.data.destacado) return a.data.destacado ? -1 : 1;
+  return a.data.nombre.localeCompare(b.data.nombre, 'es');
+});
+
+const juegosPresentes = JUEGOS.filter((j) => productos.some((p) => p.data.juego === j));
+const categoriasPresentes = CATEGORIAS.filter((c) => productos.some((p) => p.data.categoria === c));
+---
+
+<Base
+  titulo="Catálogo"
+  descripcion="Singles, sobres, mazos y accesorios de Yu-Gi-Oh!, Pokémon y One Piece. Stock actualizado y reserva por WhatsApp con retiro en nuestra tienda de Providencia."
+>
+  <section class="contenedor cabecera-pagina">
+    <h1>Catálogo</h1>
+    <p class="apagado intro">
+      Todo lo que hay en vitrina, con stock y precio a la vista. Reserva por WhatsApp
+      y retira en la tienda.
+    </p>
+  </section>
+
+  <section class="contenedor">
+    <form class="filtros tarjeta" id="filtros" role="search" aria-label="Filtrar catálogo">
+      <div class="filtros__campo filtros__campo--ancho">
+        <label for="f-texto">Buscar</label>
+        <input
+          type="search" id="f-texto" name="texto"
+          placeholder="Nombre de carta, set o producto…" autocomplete="off"
+        />
+      </div>
+
+      <div class="filtros__campo">
+        <label for="f-juego">Juego</label>
+        <select id="f-juego" name="juego">
+          <option value="">Todos</option>
+          {juegosPresentes.map((j) => <option value={j}>{ETIQUETA_JUEGO[j]}</option>)}
+        </select>
+      </div>
+
+      <div class="filtros__campo">
+        <label for="f-categoria">Categoría</label>
+        <select id="f-categoria" name="categoria">
+          <option value="">Todas</option>
+          {categoriasPresentes.map((c) => <option value={c}>{ETIQUETA_CATEGORIA[c]}</option>)}
+        </select>
+      </div>
+
+      <div class="filtros__campo">
+        <label for="f-orden">Ordenar por</label>
+        <select id="f-orden" name="orden">
+          <option value="destacado">Recomendados</option>
+          <option value="precio-asc">Precio: menor a mayor</option>
+          <option value="precio-desc">Precio: mayor a menor</option>
+          <option value="nombre">Nombre A-Z</option>
+        </select>
+      </div>
+
+      <div class="filtros__acciones">
+        <label class="filtros__check">
+          <input type="checkbox" id="f-stock" name="stock" />
+          <span>Solo con stock</span>
+        </label>
+        <button type="button" class="boton boton--secundario" id="f-limpiar">Limpiar</button>
+      </div>
+    </form>
+
+    <p class="conteo" id="conteo" role="status" aria-live="polite">
+      {productos.length} productos
+    </p>
+
+    <div class="grilla" id="grilla">
+      {productos.map((p) => <ProductoCard id={p.id} datos={p.data} />)}
+    </div>
+
+    <p class="vacio" id="vacio" hidden>
+      No encontramos productos con esos filtros.
+      <button type="button" class="enlace-boton" id="vacio-limpiar">Limpiar filtros</button>
+    </p>
+  </section>
+</Base>
+
+<script>
+  const form = document.getElementById('filtros') as HTMLFormElement | null;
+  const grilla = document.getElementById('grilla');
+  const conteo = document.getElementById('conteo');
+  const vacio = document.getElementById('vacio');
+  if (form && grilla && conteo && vacio) {
+    const tarjetas = Array.from(
+      grilla.querySelectorAll<HTMLElement>('[data-producto]'),
+    );
+    // El orden original ya viene priorizado desde el servidor; lo guardamos
+    // para poder volver a "Recomendados" sin recargar.
+    const ordenBase = tarjetas.slice();
+
+    const texto = document.getElementById('f-texto') as HTMLInputElement;
+    const juego = document.getElementById('f-juego') as HTMLSelectElement;
+    const categoria = document.getElementById('f-categoria') as HTMLSelectElement;
+    const orden = document.getElementById('f-orden') as HTMLSelectElement;
+    const soloStock = document.getElementById('f-stock') as HTMLInputElement;
+
+    const num = (el: HTMLElement, attr: string) => Number(el.dataset[attr] ?? 0);
+
+    function aplicar() {
+      const q = texto.value.trim().toLowerCase();
+      let visibles = 0;
+
+      for (const t of tarjetas) {
+        const coincide =
+          (!q || (t.dataset.nombre ?? '').includes(q)) &&
+          (!juego.value || t.dataset.juego === juego.value) &&
+          (!categoria.value || t.dataset.categoria === categoria.value) &&
+          (!soloStock.checked || num(t, 'stock') > 0);
+
+        t.hidden = !coincide;
+        if (coincide) visibles++;
+      }
+
+      const ordenados = ordenBase.slice();
+      if (orden.value === 'precio-asc') {
+        ordenados.sort((a, b) => num(a, 'precio') - num(b, 'precio'));
+      } else if (orden.value === 'precio-desc') {
+        ordenados.sort((a, b) => num(b, 'precio') - num(a, 'precio'));
+      } else if (orden.value === 'nombre') {
+        ordenados.sort((a, b) =>
+          (a.dataset.nombre ?? '').localeCompare(b.dataset.nombre ?? '', 'es'),
+        );
+      }
+      for (const t of ordenados) grilla!.appendChild(t);
+
+      conteo!.textContent =
+        visibles === 0
+          ? 'Ningún producto coincide'
+          : `${visibles} ${visibles === 1 ? 'producto' : 'productos'}`;
+      vacio!.hidden = visibles !== 0;
+    }
+
+    function limpiar() {
+      form!.reset();
+      aplicar();
+      texto.focus();
+    }
+
+    form.addEventListener('input', aplicar);
+    form.addEventListener('change', aplicar);
+    form.addEventListener('submit', (e) => e.preventDefault());
+    document.getElementById('f-limpiar')?.addEventListener('click', limpiar);
+    document.getElementById('vacio-limpiar')?.addEventListener('click', limpiar);
+
+    // Permite enlazar directo a una categoría desde el home: /catalogo?juego=yugioh
+    const params = new URLSearchParams(location.search);
+    if (params.get('juego')) juego.value = params.get('juego')!;
+    if (params.get('categoria')) categoria.value = params.get('categoria')!;
+    aplicar();
+  }
+</script>
+
+<style>
+  .cabecera-pagina { padding-block: 2.5rem 1.5rem; }
+  .cabecera-pagina h1 { margin-bottom: 0.35rem; }
+  .intro { max-width: 58ch; margin: 0; }
+
+  .filtros {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+    padding: 1.15rem;
+    align-items: end;
+  }
+  .filtros__campo { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+  .filtros__campo--ancho { grid-column: 1 / -1; }
+  @media (min-width: 720px) {
+    .filtros__campo--ancho { grid-column: span 2; }
+  }
+
+  .filtros label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-dim);
+    font-weight: 700;
+  }
+  .filtros input[type='search'], .filtros select {
+    width: 100%;
+    padding: 0.65rem 0.75rem;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border-fuerte);
+    border-radius: var(--radio-sm);
+    font: inherit;
+    font-size: 0.9375rem;
+    min-height: 44px;
+  }
+  .filtros input[type='search']:hover, .filtros select:hover { border-color: var(--accent); }
+
+  .filtros__acciones {
+    /* Ocupa la fila completa: si queda encajonada en una celda de la grilla,
+       el checkbox y el botón se apilan en vez de quedar en línea. */
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-top: 0.25rem;
+    border-top: 1px solid var(--border);
+    margin-top: 0.25rem;
+  }
+  .filtros__check {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.9375rem;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .filtros__check input { width: 18px; height: 18px; accent-color: var(--accent); }
+  /* Se mantiene el mínimo táctil de 44px del sistema; solo baja la tipografía. */
+  .filtros__acciones .boton { padding: 0.55rem 1rem; font-size: 0.875rem; }
+
+  .conteo {
+    margin: 1.5rem 0 1rem;
+    font-size: 0.875rem;
+    color: var(--text-dim);
+    font-weight: 600;
+  }
+
+  .vacio { text-align: center; padding: 3rem 1rem; color: var(--text-dim); }
+  .enlace-boton {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0.25rem;
+  }
+</style>

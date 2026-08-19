@@ -1,0 +1,201 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import ProductoCard from '../components/ProductoCard.astro';
+import TorneoCard from '../components/TorneoCard.astro';
+import EstadoTienda from '../components/EstadoTienda.astro';
+import tienda from '../data/tienda.json';
+import { ruta, estadoTorneo, ETIQUETA_JUEGO } from '../lib/format';
+
+const productos = await getCollection('productos');
+const destacados = productos
+  .filter((p) => p.data.destacado && p.data.stock > 0)
+  .slice(0, 8);
+
+const torneos = await getCollection('torneos');
+const proximos = torneos
+  .filter((t) => estadoTorneo(t.data.fecha, t.data.hora, t.data.cupos, t.data.inscritos) !== 'finalizado')
+  .sort((a, b) => a.data.fecha.getTime() - b.data.fecha.getTime())
+  .slice(0, 3);
+
+const juegos = [
+  { id: 'yugioh', desc: 'Singles, sellado y el local de los sábados' },
+  { id: 'pokemon', desc: 'Sobres, ETB y liga dominical' },
+  { id: 'onepiece', desc: 'Sellado, starters y torneo de los viernes' },
+  { id: 'otros', desc: 'Protectores, playmats y juegos de mesa' },
+];
+
+const mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `${tienda.direccion.calle}, ${tienda.direccion.comuna}, ${tienda.direccion.ciudad}`,
+)}`;
+---
+
+<Base
+  titulo={`${tienda.nombre} — Tienda de cartas en Providencia, Santiago`}
+  tituloExacto={true}
+  descripcion={tienda.descripcion}
+>
+  <section class="hero">
+    <div class="contenedor hero__interior">
+      <p class="hero__kicker">
+        <EstadoTienda />
+        {tienda.direccion.calle}, {tienda.direccion.comuna}
+      </p>
+
+      <h1>Cartas, torneos y comunidad<br /><span class="hero__acento">en Providencia</span></h1>
+
+      <p class="hero__bajada">
+        Singles y sellado de Yu-Gi-Oh!, Pokémon y One Piece, con stock a la vista y
+        torneos toda la semana. Reserva por WhatsApp y retira en la tienda.
+      </p>
+
+      <div class="hero__acciones">
+        <a class="boton boton--primario" href={ruta('/catalogo')}>Ver catálogo</a>
+        <a class="boton boton--secundario" href={ruta('/torneos')}>Próximos torneos</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="contenedor seccion">
+    <h2 class="visualmente-oculto">Categorías</h2>
+    <div class="juegos">
+      {juegos.map((j) => (
+        <a class="juego tarjeta" href={ruta(`/catalogo?juego=${j.id}`)}>
+          <span class="juego__punto" style={`background: var(--juego-${j.id})`}></span>
+          <span class="juego__nombre">{ETIQUETA_JUEGO[j.id]}</span>
+          <span class="juego__desc apagado">{j.desc}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  {destacados.length > 0 && (
+    <section class="contenedor seccion">
+      <div class="fila-titulo">
+        <h2>Destacados de la vitrina</h2>
+        <a href={ruta('/catalogo')}>Ver todo el catálogo</a>
+      </div>
+      <div class="grilla">
+        {destacados.map((p) => <ProductoCard id={p.id} datos={p.data} />)}
+      </div>
+    </section>
+  )}
+
+  {proximos.length > 0 && (
+    <section class="contenedor seccion">
+      <div class="fila-titulo">
+        <h2>Próximos torneos</h2>
+        <a href={ruta('/torneos')}>Ver calendario completo</a>
+      </div>
+      <div class="grilla grilla--ancha">
+        {proximos.map((t) => <TorneoCard id={t.id} datos={t.data} />)}
+      </div>
+    </section>
+  )}
+
+  <section class="contenedor seccion">
+    <div class="visita tarjeta">
+      <div>
+        <h2>Pasa por la tienda</h2>
+        <p class="apagado">
+          Estamos en {tienda.direccion.calle}, {tienda.direccion.comuna}. Puedes venir a
+          jugar, revisar singles en vitrina o retirar lo que reservaste por WhatsApp.
+        </p>
+        <ul class="visita__horario">
+          {tienda.horario.map((h) => (
+            <li>
+              <span class="apagado">{h.etiqueta}</span>
+              <strong>{h.abre} – {h.cierra}</strong>
+            </li>
+          ))}
+          <li><span class="apagado">Lunes</span> <strong>Cerrado</strong></li>
+        </ul>
+        <div class="visita__acciones">
+          <a class="boton boton--primario" href={mapa} target="_blank" rel="noopener">Cómo llegar</a>
+          <a class="boton boton--secundario" href={ruta('/tienda')}>Ver la tienda</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    border-bottom: 1px solid var(--border);
+    padding-block: clamp(3rem, 9vw, 6rem);
+  }
+  .hero__interior { max-width: 46rem; }
+  .hero__kicker {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    font-size: 0.875rem;
+    color: var(--text-dim);
+    font-weight: 600;
+    margin-bottom: 1.25rem;
+  }
+  .hero h1 { margin-bottom: 1rem; }
+  .hero__acento {
+    background: linear-gradient(90deg, var(--accent), var(--violet));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .hero__bajada {
+    font-size: clamp(1rem, 2vw, 1.1875rem);
+    color: var(--text-dim);
+    max-width: 52ch;
+    margin-bottom: 2rem;
+  }
+  .hero__acciones { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+
+  .juegos {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  }
+  .juego {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 1.25rem;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+  .juego:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .juego__punto { width: 10px; height: 10px; border-radius: 50%; margin-bottom: 0.4rem; }
+  .juego__nombre { font-weight: 700; font-size: 1.0625rem; }
+  .juego__desc { font-size: 0.875rem; line-height: 1.45; }
+
+  .fila-titulo {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 1.5rem;
+  }
+  .fila-titulo h2 { margin: 0; }
+  .fila-titulo a { font-size: 0.9375rem; font-weight: 600; white-space: nowrap; }
+
+  .visita {
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    background:
+      linear-gradient(135deg, rgb(0 229 199 / 0.07), rgb(155 125 255 / 0.07)),
+      var(--bg-elev);
+  }
+  .visita h2 { margin-bottom: 0.6rem; }
+  .visita p { max-width: 55ch; }
+  .visita__horario { list-style: none; margin: 1.5rem 0; padding: 0; max-width: 26rem; }
+  .visita__horario li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9375rem;
+  }
+  .visita__acciones { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+</style>

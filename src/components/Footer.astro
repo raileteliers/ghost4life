@@ -1,0 +1,100 @@
+---
+import Logo from './Logo.astro';
+import tienda from '../data/tienda.json';
+import { ruta } from '../lib/format';
+
+const anio = new Date().getFullYear();
+const mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+  `${tienda.direccion.calle}, ${tienda.direccion.comuna}, ${tienda.direccion.ciudad}`,
+)}`;
+---
+
+<footer class="pie">
+  <div class="contenedor pie__interior">
+    <div>
+      <Logo alto={28} />
+      <p class="apagado pie__lema">{tienda.lema}</p>
+    </div>
+
+    <div>
+      <h2>Visítanos</h2>
+      <address>
+        <a href={mapa} target="_blank" rel="noopener">
+          {tienda.direccion.calle}<br />{tienda.direccion.comuna}, {tienda.direccion.ciudad}
+        </a>
+      </address>
+      <ul class="pie__horario">
+        {tienda.horario.map((h) => (
+          <li><span class="apagado">{h.etiqueta}</span> {h.abre}–{h.cierra}</li>
+        ))}
+        <li class="apagado">Lunes cerrado</li>
+      </ul>
+    </div>
+
+    <div>
+      <h2>Explorar</h2>
+      <ul class="pie__lista">
+        <li><a href={ruta('/catalogo')}>Catálogo</a></li>
+        <li><a href={ruta('/torneos')}>Torneos y eventos</a></li>
+        <li><a href={ruta('/tienda')}>La tienda</a></li>
+        <li><a href={ruta('/contacto')}>Contacto</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <h2>Síguenos</h2>
+      <ul class="pie__lista">
+        {tienda.redes.map((r) => (
+          <li>
+            <a href={r.url} target="_blank" rel="noopener">
+              {r.nombre} <span class="apagado">{r.handle}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+  <div class="contenedor pie__legal">
+    <p class="apagado">
+      © {anio} {tienda.nombreLargo}. Yu-Gi-Oh!, Pokémon y One Piece son marcas de sus
+      respectivos titulares; se mencionan aquí únicamente para identificar los productos
+      a la venta.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .pie {
+    margin-top: 4rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg-elev);
+    padding-top: 3rem;
+  }
+  .pie__interior {
+    display: grid;
+    gap: 2.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+    padding-bottom: 2.5rem;
+  }
+  .pie h2 {
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--text-dim);
+    margin-bottom: 0.9rem;
+  }
+  .pie__lema { margin-top: 0.85rem; font-size: 0.9375rem; max-width: 24ch; }
+  .pie address { font-style: normal; margin-bottom: 0.85rem; line-height: 1.5; }
+  .pie ul { list-style: none; margin: 0; padding: 0; }
+  .pie__lista li, .pie__horario li { margin-bottom: 0.45rem; font-size: 0.9375rem; }
+  .pie__horario li { color: var(--text); }
+  .pie a { text-decoration: none; }
+  .pie a:hover { text-decoration: underline; }
+
+  .pie__legal {
+    border-top: 1px solid var(--border);
+    padding-block: 1.25rem;
+  }
+  .pie__legal p { margin: 0; font-size: 0.8125rem; max-width: 80ch; }
+</style>

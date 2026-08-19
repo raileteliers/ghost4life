@@ -1,0 +1,202 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import tienda from '../../data/tienda.json';
+import {
+  clp, fechaLarga, fechaISO, ruta, whatsapp, estadoTorneo, instanteTorneo,
+  ETIQUETA_JUEGO,
+} from '../../lib/format';
+
+export async function getStaticPaths() {
+  const torneos = await getCollection('torneos');
+  return torneos.map((t) => ({ params: { id: t.id }, props: { torneo: t } }));
+}
+
+const { torneo } = Astro.props;
+const d = torneo.data;
+const { Content } = await render(torneo);
+
+const estado = estadoTorneo(d.fecha, d.hora, d.cupos, d.inscritos);
+const libres = Math.max(0, d.cupos - d.inscritos);
+const inicio = instanteTorneo(d.fecha, d.hora);
+const fin = new Date(inicio.getTime() + d.duracionHoras * 3600_000);
+
+const mensaje = `¡Hola Ghost4Life! Quiero inscribirme:\n\n• ${d.titulo}\n• ${fechaLarga(d.fecha)} a las ${d.hora} h\n• Entrada: ${d.entradaCLP === 0 ? 'gratis' : clp(d.entradaCLP)}\n\n¿Me guardan un cupo?`;
+
+const direccion = `${tienda.direccion.calle}, ${tienda.direccion.comuna}, ${tienda.direccion.ciudad}`;
+
+// JSON-LD de evento: es lo que permite que el torneo aparezca en la búsqueda de
+// eventos de Google en vez de quedar enterrado en el sitio.
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: d.titulo,
+  startDate: inicio.toISOString(),
+  endDate: fin.toISOString(),
+  eventStatus: 'https://schema.org/EventScheduled',
+  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  description: `Torneo de ${ETIQUETA_JUEGO[d.juego]} — ${d.formato}`,
+  location: {
+    '@type': 'Place',
+    name: tienda.nombre,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: tienda.direccion.calle,
+      addressLocality: tienda.direccion.comuna,
+      addressRegion: tienda.direccion.region,
+      addressCountry: tienda.direccion.pais,
+    },
+  },
+  organizer: { '@type': 'Organization', name: tienda.nombre },
+  offers: {
+    '@type': 'Offer',
+    price: d.entradaCLP,
+    priceCurrency: 'CLP',
+    availability: estado === 'abierto'
+      ? 'https://schema.org/InStock'
+      : 'https://schema.org/SoldOut',
+    url: new URL(Astro.url.pathname, Astro.site).href,
+    validFrom: new Date().toISOString(),
+  },
+};
+---
+
+<Base
+  titulo={d.titulo}
+  descripcion={`${fechaLarga(d.fecha)} a las ${d.hora} h en ${direccion}. ${d.formato}. Entrada ${d.entradaCLP === 0 ? 'gratuita' : clp(d.entradaCLP)}.`}
+  schema={schema}
+>
+  <div class="contenedor">
+    <nav class="miga" aria-label="Ruta de navegación">
+      <a href={ruta('/')}>Inicio</a>
+      <span aria-hidden="true">/</span>
+      <a href={ruta('/torneos')}>Torneos</a>
+      <span aria-hidden="true">/</span>
+      <span aria-current="page">{d.titulo}</span>
+    </nav>
+
+    <div class="detalle">
+      <div class="detalle__principal">
+        <div class="detalle__badges">
+          <span class="badge badge--juego" style={`--color-juego: var(--juego-${d.juego})`}>
+            {ETIQUETA_JUEGO[d.juego]}
+          </span>
+          {estado === 'abierto' && <span class="badge badge--ok">Inscripciones abiertas</span>}
+          {estado === 'lleno' && <span class="badge badge--alerta">Cupos llenos</span>}
+          {estado === 'finalizado' && <span class="badge">Torneo finalizado</span>}
+        </div>
+
+        <h1>{d.titulo}</h1>
+
+        <p class="detalle__cuando">
+          <time datetime={`${fechaISO(d.fecha)}T${d.hora}`}>
+            {fechaLarga(d.fecha)} · {d.hora} h
+          </time>
+        </p>
+
+        <div class="prosa"><Content /></div>
+
+        {d.premios.length > 0 && (
+          <section class="premios">
+            <h2>Premios</h2>
+            <ul>{d.premios.map((p) => <li>{p}</li>)}</ul>
+          </section>
+        )}
+      </div>
+
+      <aside class="detalle__lateral">
+        <div class="panel tarjeta">
+          <dl class="panel__datos">
+            <div><dt>Formato</dt><dd>{d.formato}</dd></div>
+            <div><dt>Entrada</dt><dd>{d.entradaCLP === 0 ? 'Gratis' : clp(d.entradaCLP)}</dd></div>
+            <div>
+              <dt>Cupos</dt>
+              <dd>
+                {estado === 'finalizado'
+                  ? `${d.inscritos} participaron`
+                  : `${libres} de ${d.cupos} disponibles`}
+              </dd>
+            </div>
+            <div><dt>Duración estimada</dt><dd>{d.duracionHoras} horas</dd></div>
+            <div><dt>Dónde</dt><dd>{direccion}</dd></div>
+          </dl>
+
+          {estado === 'abierto' && (
+            <a class="boton boton--primario boton--bloque" href={whatsapp(mensaje)} target="_blank" rel="noopener">
+              Inscribirme por WhatsApp
+            </a>
+          )}
+          {estado === 'lleno' && (
+            <a
+              class="boton boton--secundario boton--bloque"
+              href={whatsapp(`¡Hola! El torneo "${d.titulo}" aparece con cupos llenos. ¿Hay lista de espera?`)}
+              target="_blank" rel="noopener"
+            >Entrar a lista de espera</a>
+          )}
+          {estado === 'finalizado' && (
+            <a class="boton boton--secundario boton--bloque" href={ruta('/torneos')}>
+              Ver próximos torneos
+            </a>
+          )}
+
+          {estado !== 'finalizado' && (
+            /* Un .ics evita el clásico "se me pasó la fecha": queda en el
+               calendario del jugador con recordatorio propio. */
+            <a class="panel__ics" href={ruta(`/torneos/${torneo.id}.ics`)} download>
+              Agregar a mi calendario
+            </a>
+          )}
+        </div>
+      </aside>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .miga {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+    padding-block: 1.5rem 0.5rem;
+    font-size: 0.875rem; color: var(--text-dim);
+  }
+  .miga a { text-decoration: none; }
+  .miga a:hover { text-decoration: underline; }
+
+  .detalle { display: grid; gap: 2.5rem; padding-block: 1rem 1rem; }
+  @media (min-width: 900px) {
+    .detalle { grid-template-columns: minmax(0, 1fr) 340px; gap: 3rem; align-items: start; }
+  }
+
+  .detalle__badges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.9rem; }
+  .detalle__cuando {
+    font-size: 1.0625rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+  .detalle__cuando::first-letter { text-transform: uppercase; }
+
+  .premios { margin-top: 2rem; }
+  .premios h2 { font-size: 1.125rem; }
+  .premios ul { padding-left: 1.25rem; max-width: 60ch; }
+  .premios li { margin-bottom: 0.4rem; }
+
+  .detalle__lateral { position: sticky; top: 84px; }
+  @media (max-width: 899px) { .detalle__lateral { position: static; } }
+
+  .panel { padding: 1.35rem; display: flex; flex-direction: column; gap: 1.1rem; }
+  .panel__datos { margin: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+  .panel__datos div { display: flex; flex-direction: column; gap: 0.15rem; }
+  .panel__datos dt {
+    font-size: 0.6875rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-dim);
+  }
+  .panel__datos dd { margin: 0; font-weight: 700; font-size: 0.9375rem; }
+
+  .panel__ics {
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .panel__ics:hover { text-decoration: underline; }
+</style>

@@ -1,0 +1,181 @@
+---
+import Base from '../layouts/Base.astro';
+import EstadoTienda from '../components/EstadoTienda.astro';
+import tienda from '../data/tienda.json';
+import { ruta, whatsapp } from '../lib/format';
+
+const direccionCompleta = `${tienda.direccion.calle}, ${tienda.direccion.comuna}, ${tienda.direccion.ciudad}`;
+const mapa = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(direccionCompleta)}`;
+const mapaIncrustado = `https://www.google.com/maps?q=${encodeURIComponent(direccionCompleta)}&output=embed`;
+---
+
+<Base
+  titulo="La tienda"
+  descripcion={`Ghost4Life está en ${direccionCompleta}. Abierto de martes a domingo de 13:00 a 21:30. Mesas para jugar, singles en vitrina y retiro de reservas.`}
+>
+  <section class="contenedor cabecera-pagina">
+    <p class="kicker"><EstadoTienda /></p>
+    <h1>La tienda</h1>
+    <p class="apagado intro">
+      Un local para comprar, pero sobre todo para jugar. Mesas disponibles, vitrina
+      de singles y gente con quien duelear cualquier día que abrimos.
+    </p>
+  </section>
+
+  <section class="contenedor">
+    <div class="disposicion">
+      <div class="datos">
+        <div class="bloque tarjeta">
+          <h2>Dirección</h2>
+          <address>
+            {tienda.direccion.calle}<br />
+            {tienda.direccion.comuna}, {tienda.direccion.ciudad}<br />
+            {tienda.direccion.region}
+          </address>
+          <a class="boton boton--primario" href={mapa} target="_blank" rel="noopener">Cómo llegar</a>
+        </div>
+
+        <div class="bloque tarjeta">
+          <h2>Horario</h2>
+          <ul class="horario">
+            {tienda.horario.map((h) => (
+              <li><span class="apagado">{h.etiqueta}</span> <strong>{h.abre} – {h.cierra}</strong></li>
+            ))}
+            <li><span class="apagado">Lunes</span> <strong>Cerrado</strong></li>
+          </ul>
+          <p class="nota apagado">
+            En días de torneo el local se mantiene abierto hasta que termina la
+            última ronda.
+          </p>
+        </div>
+
+        <div class="bloque tarjeta">
+          <h2>Qué puedes hacer acá</h2>
+          <ul class="lista-check">
+            <li>Revisar la vitrina de singles y pedir que te muestren cartas</li>
+            <li>Retirar y pagar lo que reservaste por WhatsApp</li>
+            <li>Jugar en mesa, con o sin torneo en curso</li>
+            <li>Pedir ayuda para armar o mejorar tu mazo</li>
+            <li>Inscribirte en el torneo del día</li>
+          </ul>
+          <a class="boton boton--secundario" href={whatsapp('¡Hola! Quiero preguntar algo sobre la tienda.')} target="_blank" rel="noopener">
+            Preguntar por WhatsApp
+          </a>
+        </div>
+      </div>
+
+      <div class="mapa tarjeta">
+        <iframe
+          src={mapaIncrustado}
+          title={`Mapa de ubicación de ${tienda.nombre} en ${direccionCompleta}`}
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen
+        ></iframe>
+        <p class="mapa__respaldo">
+          ¿No ves el mapa? Los bloqueadores de rastreo suelen impedir que cargue.
+          <a href={mapa} target="_blank" rel="noopener">Ábrelo en Google Maps</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="contenedor seccion">
+    <div class="cierre tarjeta">
+      <h2>¿Vienes por primera vez?</h2>
+      <p class="apagado">
+        No hace falta saber jugar ni traer nada. Entra, pregunta, mira la vitrina.
+        Si quieres partir en algún juego, te explicamos las opciones según lo que
+        te llame la atención y cuánto quieras invertir.
+      </p>
+      <div class="cierre__acciones">
+        <a class="boton boton--primario" href={ruta('/catalogo')}>Ver el catálogo</a>
+        <a class="boton boton--secundario" href={ruta('/torneos')}>Ver los torneos</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .cabecera-pagina { padding-block: 2.5rem 1.5rem; }
+  .kicker { margin-bottom: 0.9rem; }
+  .cabecera-pagina h1 { margin-bottom: 0.35rem; }
+  .intro { max-width: 56ch; margin: 0; }
+
+  .disposicion { display: grid; gap: 1.5rem; }
+  @media (min-width: 900px) {
+    .disposicion { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  }
+
+  .datos { display: flex; flex-direction: column; gap: 1.5rem; }
+  .bloque { padding: 1.5rem; }
+  .bloque h2 { font-size: 1.0625rem; margin-bottom: 0.85rem; }
+  .bloque address { font-style: normal; line-height: 1.6; margin-bottom: 1.25rem; }
+  .bloque .boton { margin-top: 0.5rem; }
+
+  .horario { list-style: none; margin: 0 0 1rem; padding: 0; }
+  .horario li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.9375rem;
+  }
+  .nota { font-size: 0.8125rem; margin: 0; }
+
+  .lista-check { list-style: none; margin: 0 0 1rem; padding: 0; }
+  .lista-check li {
+    position: relative;
+    padding-left: 1.6rem;
+    margin-bottom: 0.55rem;
+    font-size: 0.9375rem;
+  }
+  .lista-check li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0.5em;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .mapa {
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    /* Fondo oscuro propio: si el iframe no carga (bloqueador, sin red), el
+       hueco queda en el color del sitio y no como un rectángulo blanco. */
+    background: var(--bg-elev-2);
+  }
+  .mapa iframe {
+    width: 100%;
+    flex: 1;
+    min-height: 380px;
+    border: 0;
+    display: block;
+    color-scheme: light;
+  }
+  .mapa__respaldo {
+    margin: 0;
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    background: var(--bg-elev);
+  }
+  @media (min-width: 900px) {
+    .mapa { position: sticky; top: 84px; }
+    .mapa iframe { min-height: 560px; }
+  }
+
+  .cierre {
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    background:
+      linear-gradient(135deg, rgb(0 229 199 / 0.07), rgb(155 125 255 / 0.07)),
+      var(--bg-elev);
+  }
+  .cierre p { max-width: 60ch; }
+  .cierre__acciones { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.25rem; }
+</style>

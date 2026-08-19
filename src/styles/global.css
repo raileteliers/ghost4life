@@ -1,0 +1,257 @@
+/* ==========================================================================
+   Ghost4Life — sistema de diseño
+   Tema oscuro único y deliberado. Todos los pares texto/fondo de estos tokens
+   fueron verificados contra WCAG AA (>= 4.5:1 en texto normal).
+   ========================================================================== */
+
+:root {
+  /* Superficies */
+  --bg:          #0a0b10;
+  --bg-elev:     #12141d;
+  --bg-elev-2:   #1a1d29;
+  --border:      #272b3a;
+  --border-fuerte: #3a3f52;
+
+  /* Texto */
+  --text:        #eceef5; /* 16.96:1 sobre --bg */
+  --text-dim:    #a2a6bd; /*  8.17:1 sobre --bg */
+
+  /* Acentos */
+  --accent:      #00e5c7; /* teal fantasma — CTA principal */
+  --accent-ink:  #04060a; /* texto sobre --accent, 12.58:1 */
+  --violet:      #9b7dff; /*  6.34:1 sobre --bg */
+  --gold:        #f5c45e;
+  --danger:      #ff6b6b;
+
+  /* Colores por juego, usados solo como acento de badge */
+  --juego-yugioh:   #c9a227;
+  --juego-pokemon:  #ffcb05;
+  --juego-onepiece: #e4572e;
+  --juego-otros:    #7f8ba3;
+
+  /* Escala */
+  --radio:      12px;
+  --radio-sm:    8px;
+  --ancho:    1180px;
+  --gap:      1.5rem;
+
+  --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  --sombra-alta: 0 2px 4px rgb(0 0 0 / 0.5), 0 16px 40px -16px rgb(0 0 0 / 0.7);
+
+  --fuente: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+body {
+  margin: 0;
+  /* El fondo se pinta explícitamente: nada hereda del host. */
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--fuente);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  /* Halo espectral muy sutil, coherente con el nombre de la marca. */
+  background-image:
+    radial-gradient(60rem 30rem at 15% -10%, rgb(0 229 199 / 0.07), transparent 60%),
+    radial-gradient(50rem 28rem at 90% 0%, rgb(155 125 255 / 0.07), transparent 60%);
+  background-repeat: no-repeat;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.5em;
+  font-weight: 700;
+}
+h1 { font-size: clamp(2rem, 5vw, 3.25rem); }
+h2 { font-size: clamp(1.5rem, 3.2vw, 2.125rem); }
+h3 { font-size: clamp(1.125rem, 2vw, 1.375rem); }
+
+p { margin: 0 0 1em; }
+img, svg, video { max-width: 100%; height: auto; display: block; }
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--text); }
+
+/* Foco siempre visible: se navega mucho con teclado en catálogos largos. */
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* --------------------------------------------------------------- Utilidades */
+
+.contenedor {
+  width: 100%;
+  max-width: var(--ancho);
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+.seccion { padding-block: clamp(3rem, 7vw, 5rem); }
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.saltar-al-contenido {
+  position: absolute;
+  left: 1rem;
+  top: -100%;
+  z-index: 200;
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radio-sm);
+  font-weight: 700;
+  transition: top 0.15s;
+}
+.saltar-al-contenido:focus { top: 1rem; color: var(--accent-ink); }
+
+.apagado { color: var(--text-dim); }
+
+/* ------------------------------------------------------------------ Botones */
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.4rem;
+  border-radius: var(--radio-sm);
+  border: 1px solid transparent;
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
+  /* Mínimo táctil cómodo en móvil. */
+  min-height: 44px;
+}
+.boton:active { transform: translateY(1px); }
+
+.boton--primario { background: var(--accent); color: var(--accent-ink); }
+.boton--primario:hover { background: #5cf0da; color: var(--accent-ink); }
+
+.boton--secundario {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border-fuerte);
+}
+.boton--secundario:hover { border-color: var(--accent); color: var(--accent); }
+
+.boton--bloque { width: 100%; }
+
+.boton[aria-disabled='true'] {
+  background: var(--bg-elev-2);
+  color: var(--text-dim);
+  border-color: var(--border);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ------------------------------------------------------------------- Badges */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--border-fuerte);
+  color: var(--text-dim);
+  background: var(--bg-elev-2);
+  white-space: nowrap;
+}
+.badge--juego::before {
+  content: '';
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--color-juego, var(--juego-otros));
+}
+.badge--ok     { color: var(--accent); border-color: rgb(0 229 199 / 0.4); }
+.badge--alerta { color: var(--gold);   border-color: rgb(245 196 94 / 0.4); }
+.badge--off    { color: var(--danger); border-color: rgb(255 107 107 / 0.4); }
+
+/* ------------------------------------------------------------------ Tarjeta */
+
+.tarjeta {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  overflow: hidden;
+}
+
+/* ------------------------------------------------------------------ Grillas */
+
+.grilla {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+}
+.grilla--ancha {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+}
+
+/* --------------------------------------------------- Barra fija en el móvil */
+/* La audiencia TCG es mayoritariamente móvil: las dos acciones que importan
+   (escribir y llegar a la tienda) quedan siempre a un pulgar de distancia. */
+
+.barra-movil {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem calc(0.6rem + env(safe-area-inset-bottom));
+  background: rgb(10 11 16 / 0.92);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid var(--border);
+}
+.barra-movil .boton { padding-block: 0.7rem; font-size: 0.9375rem; }
+
+@media (min-width: 860px) {
+  .barra-movil { display: none; }
+}
+@media (max-width: 859px) {
+  /* Para que la barra no tape el final del contenido. */
+  body { padding-bottom: 4.75rem; }
+}
+
+/* --------------------------------------------------------------- Prosa (md) */
+
+.prosa { max-width: 65ch; }
+.prosa > :first-child { margin-top: 0; }
+.prosa h2 { margin-top: 1.75em; }
+.prosa ul { padding-left: 1.25rem; }
+.prosa li { margin-bottom: 0.35em; }
+.prosa strong { color: var(--text); }

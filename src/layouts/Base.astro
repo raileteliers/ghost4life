@@ -1,0 +1,96 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import BarraMovil from '../components/BarraMovil.astro';
+import tienda from '../data/tienda.json';
+import { ruta } from '../lib/format';
+
+interface Props {
+  titulo: string;
+  descripcion: string;
+  /** JSON-LD adicional de la página (por ejemplo Event o Product). */
+  schema?: Record<string, unknown> | Record<string, unknown>[];
+  /** El home no repite el nombre de la tienda en el <title>. */
+  tituloExacto?: boolean;
+}
+
+const { titulo, descripcion, schema, tituloExacto = false } = Astro.props;
+
+const tituloPagina = tituloExacto ? titulo : `${titulo} · ${tienda.nombre}`;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImagen = new URL(ruta('/og.png'), Astro.site).href;
+
+// Datos estructurados del negocio, presentes en TODAS las páginas: es lo que
+// permite que Google muestre dirección, horario y mapa en el panel local.
+// Nota: se omiten deliberadamente las coordenadas geográficas hasta que el
+// dueño confirme el pin exacto — un geo equivocado daña más de lo que ayuda.
+const negocio = {
+  '@context': 'https://schema.org',
+  '@type': 'Store',
+  '@id': new URL(ruta('/'), Astro.site).href + '#tienda',
+  name: tienda.nombre,
+  description: tienda.descripcion,
+  url: new URL(ruta('/'), Astro.site).href,
+  image: ogImagen,
+  telephone: `+${tienda.whatsapp}`,
+  email: tienda.email,
+  priceRange: '$$',
+  currenciesAccepted: 'CLP',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: tienda.direccion.calle,
+    addressLocality: tienda.direccion.comuna,
+    addressRegion: tienda.direccion.region,
+    addressCountry: tienda.direccion.pais,
+  },
+  openingHoursSpecification: tienda.horario.map((h) => ({
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: h.dias,
+    opens: h.abre,
+    closes: h.cierra,
+  })),
+  sameAs: tienda.redes.map((r) => r.url),
+};
+
+const schemas = [negocio, ...(schema ? (Array.isArray(schema) ? schema : [schema]) : [])];
+---
+
+<!doctype html>
+<html lang="es-CL">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{tituloPagina}</title>
+    <meta name="description" content={descripcion} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#0a0b10" />
+    <link rel="icon" href={ruta('/favicon.svg')} type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CL" />
+    <meta property="og:site_name" content={tienda.nombre} />
+    <meta property="og:title" content={tituloPagina} />
+    <meta property="og:description" content={descripcion} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImagen} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={tituloPagina} />
+    <meta name="twitter:description" content={descripcion} />
+    <meta name="twitter:image" content={ogImagen} />
+
+    {schemas.map((s) => (
+      <script is:inline type="application/ld+json" set:html={JSON.stringify(s)} />
+    ))}
+  </head>
+
+  <body>
+    <a class="saltar-al-contenido" href="#contenido">Saltar al contenido</a>
+    <Header />
+    <main id="contenido">
+      <slot />
+    </main>
+    <Footer />
+    <BarraMovil />
+  </body>
+</html>
