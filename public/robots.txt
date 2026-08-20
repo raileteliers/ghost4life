@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://rleteliers.github.io/okey/sitemap-index.xml
+Sitemap: https://raileteliers.github.io/ghost4life/sitemap-index.xml

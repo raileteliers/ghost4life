@@ -14,7 +14,7 @@ real** y **llenar los torneos**.
 
 ```bash
 npm install
-npm run dev      # http://localhost:4321/okey
+npm run dev      # http://localhost:4321/ghost4life
 npm run build    # genera dist/
 npm run preview  # sirve dist/ localmente
 npx astro check  # tipos y validación de los esquemas de contenido
@@ -118,7 +118,7 @@ el pie de página, la página de tienda, los enlaces de WhatsApp y el JSON-LD de
 push a `main`.
 
 **Falta un paso manual:** en *Settings → Pages → Source*, elegir **GitHub
-Actions**. Hecho eso, el sitio queda en `https://rleteliers.github.io/okey/`.
+Actions**. Hecho eso, el sitio queda en `https://raileteliers.github.io/ghost4life/`.
 
 Para servirlo desde el dominio propio, no hay que tocar ningún enlace — basta
 con construir así:

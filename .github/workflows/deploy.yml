@@ -35,8 +35,8 @@ jobs:
       - name: Construir el sitio
         run: npm run build
         env:
-          SITE_URL: https://rleteliers.github.io
-          BASE_PATH: /okey
+          SITE_URL: https://raileteliers.github.io
+          BASE_PATH: /ghost4life
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
