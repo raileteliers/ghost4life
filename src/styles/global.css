@@ -5,29 +5,34 @@
    ========================================================================== */
 
 :root {
-  /* Superficies */
-  --bg:          #0a0b10;
-  --bg-elev:     #12141d;
-  --bg-elev-2:   #1a1d29;
-  --border:      #272b3a;
-  --border-fuerte: #3a3f52;
+  /* Superficies — negro de la marca, escalado por elevación */
+  --bg:          #0a0a0a;
+  --bg-elev:     #141414;
+  --bg-elev-2:   #1f1f1f;
+  --border:      #2b2b2b;
+  --border-fuerte: #404040;
 
   /* Texto */
-  --text:        #eceef5; /* 16.96:1 sobre --bg */
-  --text-dim:    #a2a6bd; /*  8.17:1 sobre --bg */
+  --text:        #f5f5f5; /* 18.16:1 sobre --bg */
+  --text-dim:    #a8a8a8; /*  8.33:1 sobre --bg */
 
-  /* Acentos */
-  --accent:      #00e5c7; /* teal fantasma — CTA principal */
-  --accent-ink:  #04060a; /* texto sobre --accent, 12.58:1 */
-  --violet:      #9b7dff; /*  6.34:1 sobre --bg */
-  --gold:        #f5c45e;
-  --danger:      #ff6b6b;
+  /* Acentos — el blanco del fantasma ES el acento. Un botón primario
+     es la inversión exacta del logo: cuerpo blanco, tinta negra. */
+  --accent:      #ffffff; /* 19.80:1 sobre --bg */
+  --accent-ink:  #0a0a0a; /* texto sobre --accent, 19.80:1 */
+  --tenue:       #9a9a9a; /*  7.04:1 — segundo tono de los degradados */
 
-  /* Colores por juego, usados solo como acento de badge */
-  --juego-yugioh:   #c9a227;
-  --juego-pokemon:  #ffcb05;
-  --juego-onepiece: #e4572e;
-  --juego-otros:    #7f8ba3;
+  /* Única cromática permitida: el estado de stock. Es información que
+     el cliente necesita leer de un vistazo, no decoración de marca. */
+  --gold:        #e8b84b; /* 10.74:1 — pocas unidades */
+  --danger:      #ff6b6b; /*  7.13:1 — sin stock */
+
+  /* Los juegos se distinguen por la etiqueta escrita, no por color:
+     el badge lleva el nombre, así que el color sería redundante. */
+  --juego-yugioh:   #d4d4d4;
+  --juego-pokemon:  #d4d4d4;
+  --juego-onepiece: #d4d4d4;
+  --juego-otros:    #8a8a8a;
 
   /* Escala */
   --radio:      12px;
@@ -68,8 +73,8 @@ body {
   -webkit-font-smoothing: antialiased;
   /* Halo espectral muy sutil, coherente con el nombre de la marca. */
   background-image:
-    radial-gradient(60rem 30rem at 15% -10%, rgb(0 229 199 / 0.07), transparent 60%),
-    radial-gradient(50rem 28rem at 90% 0%, rgb(155 125 255 / 0.07), transparent 60%);
+    radial-gradient(60rem 30rem at 15% -10%, rgb(255 255 255 / 0.05), transparent 60%),
+    radial-gradient(50rem 28rem at 90% 0%, rgb(255 255 255 / 0.035), transparent 60%);
   background-repeat: no-repeat;
 }
 
@@ -154,7 +159,7 @@ a:hover { color: var(--text); }
 .boton:active { transform: translateY(1px); }
 
 .boton--primario { background: var(--accent); color: var(--accent-ink); }
-.boton--primario:hover { background: #5cf0da; color: var(--accent-ink); }
+.boton--primario:hover { background: #dcdcdc; color: var(--accent-ink); }
 
 .boton--secundario {
   background: transparent;
@@ -195,8 +200,8 @@ a:hover { color: var(--text); }
   border-radius: 50%;
   background: var(--color-juego, var(--juego-otros));
 }
-.badge--ok     { color: var(--accent); border-color: rgb(0 229 199 / 0.4); }
-.badge--alerta { color: var(--gold);   border-color: rgb(245 196 94 / 0.4); }
+.badge--ok     { color: var(--accent); border-color: rgb(255 255 255 / 0.35); }
+.badge--alerta { color: var(--gold);   border-color: rgb(232 184 75 / 0.45); }
 .badge--off    { color: var(--danger); border-color: rgb(255 107 107 / 0.4); }
 
 /* ------------------------------------------------------------------ Tarjeta */
@@ -233,7 +238,7 @@ a:hover { color: var(--text); }
   grid-template-columns: 1fr 1fr;
   gap: 0.5rem;
   padding: 0.6rem 0.75rem calc(0.6rem + env(safe-area-inset-bottom));
-  background: rgb(10 11 16 / 0.92);
+  background: rgb(10 10 10 / 0.92);
   backdrop-filter: blur(8px);
   border-top: 1px solid var(--border);
 }

@@ -7,27 +7,31 @@ const { alto = 32 } = Astro.props;
   fill="none" xmlns="http://www.w3.org/2000/svg"
   role="img" aria-label="Ghost4Life"
 >
-  <!-- Marca provisional propia. No reproduce el logotipo original de la tienda. -->
-  <defs>
-    <linearGradient id="g4l-fantasma" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#00e5c7" />
-      <stop offset="100%" stop-color="#9b7dff" />
-    </linearGradient>
-  </defs>
+  <!-- Fantasma blanco sobre negro, siguiendo la marca de las redes.
+       Los rasgos van calados en negro sobre el cuerpo, no dibujados
+       encima: a 32px de alto el detalle fino se empasta. -->
   <path
     d="M25 6c-9.4 0-17 7.6-17 17v18.6c0 1.7 2 2.6 3.3 1.5l3.4-3a2 2 0 0 1 2.7.1l2.8 2.7a2 2 0 0 0 2.8 0l2.8-2.7a2 2 0 0 1 2.7 0l2.8 2.7a2 2 0 0 0 2.8 0l3.4-3.3c1.3-1.2 3.5-.3 3.5 1.5V23c0-9.4-7.6-17-17-17Z"
-    fill="url(#g4l-fantasma)" fill-opacity="0.18"
-    stroke="url(#g4l-fantasma)" stroke-width="2.5"
+    fill="#ffffff"
   />
-  <circle cx="19" cy="22" r="3.1" fill="#00e5c7" />
-  <circle cx="31" cy="22" r="3.1" fill="#00e5c7" />
+
+  <!-- Ojos: cuñas inclinadas hacia el centro, el gesto de la marca. -->
+  <path d="M13.6 17.8 21.4 22.2 14.6 26.4Z" fill="#0a0a0a" />
+  <path d="M36.4 17.8 28.6 22.2 35.4 26.4Z" fill="#0a0a0a" />
+
+  <!-- Sonrisa abierta con colmillos calados en blanco. -->
+  <path d="M14.5 29.5 A 10.5 10.5 0 0 0 35.5 29.5 Z" fill="#0a0a0a" />
+  <path d="M18.4 29.5 20.6 34.1 22.8 29.5Z" fill="#ffffff" />
+  <path d="M23.4 29.5 25.4 33.6 27.4 29.5Z" fill="#ffffff" />
+  <path d="M28.2 29.5 30.2 34.0 32.2 29.5Z" fill="#ffffff" />
+
   <text
-    x="55" y="26" fill="#eceef5"
+    x="55" y="26" fill="#f5f5f5"
     font-family="system-ui, sans-serif" font-size="19" font-weight="800"
     letter-spacing="-0.5"
   >GHOST</text>
   <text
-    x="55" y="42" fill="#00e5c7"
+    x="55" y="42" fill="#a8a8a8"
     font-family="system-ui, sans-serif" font-size="13" font-weight="700"
     letter-spacing="4.2"
   >4LIFE</text>
